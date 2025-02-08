@@ -40,7 +40,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ansimtouch:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/chillog:latest
           platforms: linux/amd64
 
       - name: ssh to ec2
