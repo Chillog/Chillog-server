@@ -125,7 +125,8 @@ class MissionScheduler (
             val missionEntity = MissionEntity(
                 mission = mission,
                 timer = timer,
-                intensity = intensity
+                intensity = intensity,
+                isComplete = false
             )
             missionRepository.save(missionEntity)
         }

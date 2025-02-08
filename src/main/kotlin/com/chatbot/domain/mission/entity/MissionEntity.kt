@@ -17,4 +17,6 @@ class MissionEntity (
     val timer: Int,
 
     val intensity: Int,
+
+    var isComplete: Boolean,
 )

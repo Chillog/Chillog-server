@@ -27,6 +27,9 @@ class MissionService (
         user.point += mission.intensity
         userRepository.save(user)
 
+        mission.isComplete = true
+        userRepository.save(user)
+
         return BaseResponse(
             message = "유저 포인트가 ${mission.intensity} 올랐습니다."
         )
