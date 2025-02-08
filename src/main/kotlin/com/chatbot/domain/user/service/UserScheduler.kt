@@ -12,6 +12,6 @@ class UserScheduler (
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     fun resetUserPoints() {
-        entityManager.createQuery("UPDATE UserEntity u SET u.point = 0").executeUpdate()
+        entityManager.createQuery("UPDATE UserEntity u SET u.score = 0").executeUpdate()
     }
 }

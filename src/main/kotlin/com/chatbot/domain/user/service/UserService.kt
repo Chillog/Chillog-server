@@ -15,7 +15,9 @@ class UserService (
     fun formUser(user: UserEntity): GetUserResponse {
         return GetUserResponse(
             id = user.id,
-            username = user.username
+            username = user.username,
+            score = user.score,
+            point = user.point
         )
     }
 

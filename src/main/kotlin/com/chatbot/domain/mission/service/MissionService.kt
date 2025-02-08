@@ -113,7 +113,7 @@ class MissionService (
         val user = userRepository.findByUsername(principal.name).orElseThrow{ CustomException(UserErrorCode.USER_NOT_FOUND) }
         user.point += 10
         return BaseResponse(
-            message = "유저 점수가 10점 올랐습니다."
+            message = "유저 포인트가 10 올랐습니다."
         )
     }
 }
