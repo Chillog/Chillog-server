@@ -1,11 +1,13 @@
 package com.chatbot.domain.mission.controller
 
 import com.chatbot.domain.mission.service.MissionService
+import com.chatbot.global.dto.BaseResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.security.Principal
 
 @Tag(name = "Mission", description = "미션")
 @RestController
@@ -17,5 +19,11 @@ class MissionController (
     @GetMapping("/list")
     fun listMissions(): String{
         return missionService.listMissions()
+    }
+
+    @Operation(summary = "미션 클리어")
+    @GetMapping("/clear")
+    fun clearMissions(principal: Principal): BaseResponse<Unit> {
+        return missionService.clearMissions(principal)
     }
 }

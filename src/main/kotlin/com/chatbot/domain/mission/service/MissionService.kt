@@ -1,12 +1,18 @@
 package com.chatbot.domain.mission.service
 
+import com.chatbot.domain.user.exception.UserErrorCode
+import com.chatbot.domain.user.repository.UserRepository
+import com.chatbot.global.dto.BaseResponse
+import com.chatbot.global.exception.CustomException
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.openai.OpenAiChatClient
 import org.springframework.stereotype.Service
+import java.security.Principal
 
 @Service
 class MissionService (
     private val chatClient: OpenAiChatClient,
+    private val userRepository: UserRepository,
 ) {
     fun listMissions(): String{
         val initialPrompt = """
@@ -101,5 +107,13 @@ class MissionService (
         )
 
         return chatClient.call(prompt.toString())
+    }
+
+    fun clearMissions(principal: Principal): BaseResponse<Unit> {
+        val user = userRepository.findByUsername(principal.name).orElseThrow{ CustomException(UserErrorCode.USER_NOT_FOUND) }
+        user.point += 10
+        return BaseResponse(
+            message = "유저 점수가 10점 올랐습니다."
+        )
     }
 }
