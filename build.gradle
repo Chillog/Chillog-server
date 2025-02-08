@@ -6,6 +6,10 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.jpa' version '1.9.25'
 }
 
+ext {
+    springAiVersion = "1.0.0-M5"
+}
+
 group = 'com'
 version = '0.0.1-SNAPSHOT'
 
@@ -17,6 +21,8 @@ java {
 
 repositories {
     mavenCentral()
+    maven { url 'https://repo.spring.io/milestone' }
+    maven { url 'https://repo.spring.io/release' }
 }
 
 dependencies {
@@ -43,11 +49,22 @@ dependencies {
 
     // SpringDoc
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+
+    // openai
+    implementation 'org.springframework.ai:spring-ai-openai:0.8.0'
+    implementation 'org.springframework.ai:spring-ai-core:0.8.0'
 }
 
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll '-Xjsr305=strict'
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:3.4.1"
+        mavenBom "org.springframework.ai:spring-ai-bom:$springAiVersion"
     }
 }
 
