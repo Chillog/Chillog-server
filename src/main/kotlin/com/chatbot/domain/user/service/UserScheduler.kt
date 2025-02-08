@@ -7,11 +7,17 @@ import org.springframework.stereotype.Component
 
 @Component
 class UserScheduler (
-    private val entityManager: EntityManager
+    private val entityManager: EntityManager,
+
 ) {
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     fun resetUserPoints() {
-        entityManager.createQuery("UPDATE UserEntity u SET u.score = 0").executeUpdate()
+        entityManager.createQuery("UPDATE UserEntity u SET u.score = randomNumber()").executeUpdate()
     }
+
+    fun randomNumber(): Int{
+        return (1..100).random()
+    }
+
 }

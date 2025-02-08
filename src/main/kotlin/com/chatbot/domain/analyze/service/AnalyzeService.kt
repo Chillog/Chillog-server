@@ -1,15 +1,13 @@
-package com.chatbot.domain.chat.service
+package com.chatbot.domain.analyze.service
 
-import com.chatbot.domain.chat.entity.ChatHistory
-import com.chatbot.domain.chat.entity.ChatMessage
-import com.chatbot.domain.chat.exception.ChatErrorCode
-import com.chatbot.domain.chat.repository.ChatRepository
+import com.chatbot.domain.analyze.exception.AnalyzeErrorCode
+import com.chatbot.domain.user.entity.UserEntity
 import com.chatbot.global.exception.CustomException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.hibernate.query.sqm.tree.SqmNode.log
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
@@ -17,9 +15,10 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.lang.Thread.sleep
+import java.util.concurrent.TimeUnit
 
 @Service
-class ChatService (
+class AnalyzeService (
     private val objectMapper: ObjectMapper,
 
     @Value("\${spring.ai.openai.api-key}")
@@ -28,7 +27,7 @@ class ChatService (
     @Value("\${spring.ai.openai.assistantId}")
     private val assistantId: String,
 
-    private val chatRepository: ChatRepository,
+    private val redisTemplate: StringRedisTemplate
 ) {
     private val restTemplate = RestTemplate()
     private val apiUrl = "https://api.openai.com/v1/threads"
@@ -39,25 +38,13 @@ class ChatService (
         set("OpenAI-Beta", "assistants=v2")
     }
 
-    fun sendMessage(userId: String, message: String): ChatMessage {
-        if (!chatRepository.existsByUserId(userId)) {
-            // mongoDB 조회 후 이전 대화 내용이 없다면 thread 생성
-            val chatHistory = ChatHistory(
-                userId = userId,
-                threadId = createThread(),
-            )
-            chatRepository.save(chatHistory)
-        }
-        val chatHistory = chatRepository.findByUserId(userId)
-        val threadId = chatHistory!!.threadId
+    fun analyze(user: UserEntity): String {
+        val threadId = createThread()
 
-        val userMessage = ChatMessage(content = message, role = "user")
-        chatHistory.messages.add(userMessage)
-
-        createMessage(threadId, message)
+        createMessage(threadId, user.score)
         runAssistant(threadId)
         sleep(3000)
-        return getMessage(chatHistory, threadId)
+        return getMessage(user.id.toString(), threadId)
     }
 
     // thread 발급
@@ -69,10 +56,10 @@ class ChatService (
     }
 
     // 메시지 생성
-    fun createMessage(threadId: String, message: String) {
+    fun createMessage(threadId: String, score: Int) {
         val requestBody = mapOf(
             "role" to "user",
-            "content" to message
+            "content" to score
         )
         val entity = HttpEntity(requestBody,headers)
         restTemplate.exchange("$apiUrl/$threadId/messages", HttpMethod.POST, entity, String::class.java)
@@ -88,7 +75,7 @@ class ChatService (
     }
 
     // 메시지 가져오기
-    fun getMessage(chatHistory: ChatHistory, threadId: String): ChatMessage{
+    fun getMessage(userId: String, threadId: String): String{
         while (true) {
             try {
                 val entity = HttpEntity<String>(headers)
@@ -110,28 +97,17 @@ class ChatService (
                 if (role == "user" && value != null) {
                     sleep(1000) // 제일 처음 메시자가 user이면 기다렸다가 다시 요청 보내기
                 } else {
-                    val assistantMessage = ChatMessage(
-                        content = value.toString(),
-                        role = "assistant"
-                    )
-                    chatHistory.messages.add(assistantMessage)
-                    chatRepository.save(chatHistory)
-                    return assistantMessage
+                    redisTemplate.opsForValue().set("analyze:$", value!!, 1, TimeUnit.DAYS)
+                    return value
                 }
             } catch (e: Exception) {
-                throw CustomException(ChatErrorCode.GET_CHAT_ERROR)
+                throw CustomException(AnalyzeErrorCode.GET_CHAT_ERROR)
             }
         }
     }
 
-
-    fun clearHistory(userId: String) {
-        val history = chatRepository.findByUserId(userId)
-        history?.messages?.clear()
-        history?.let { chatRepository.save(it) }
-    }
-
-    fun getHistory(userId: String): List<ChatMessage> {
-        return chatRepository.findByUserId(userId)?.messages ?: emptyList()
+    fun getHistory(userId: String): String {
+        return redisTemplate.opsForValue().get("analyze:$userId")
+            ?: throw throw CustomException(AnalyzeErrorCode.RESPONSE_IS_NULL)
     }
 }
