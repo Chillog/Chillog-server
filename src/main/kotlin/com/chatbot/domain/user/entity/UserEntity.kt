@@ -17,4 +17,6 @@ class UserEntity (
 
     @Column(nullable = false)
     val password: String,
+
+    val point: Int = 0,
 )
