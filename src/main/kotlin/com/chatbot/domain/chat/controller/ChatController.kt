@@ -8,9 +8,11 @@ import com.chatbot.domain.user.exception.UserErrorCode
 import com.chatbot.domain.user.repository.UserRepository
 import com.chatbot.global.exception.CustomException
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 
+@Tag(name = "Chat", description = "챗봇 기능")
 @RestController
 @RequestMapping("/chat")
 class ChatController (
