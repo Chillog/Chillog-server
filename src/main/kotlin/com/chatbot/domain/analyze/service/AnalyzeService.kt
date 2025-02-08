@@ -83,6 +83,7 @@ class AnalyzeService (
                 val response =
                     restTemplate.exchange("$apiUrl/$threadId/messages", HttpMethod.GET, entity, String::class.java)
                 val responseBody = objectMapper.readValue<Map<String, Any>>(response.body!!)
+                log.info(response)
 
                 val data = responseBody["data"] as? List<Map<String, Any>>
                 val firstMessage = data?.firstOrNull()
@@ -95,11 +96,10 @@ class AnalyzeService (
                     textMap?.get("value") as? String
                 }
                 log.info(value)
-                if (role == "user" && value != null) {
+                if (role == "user" || value == null) {
                     sleep(1000) // 제일 처음 메시자가 user이면 기다렸다가 다시 요청 보내기
                 } else {
-                    sleep(1000)
-                    redisTemplate.opsForValue().set("analyze:$", value!!, 1, TimeUnit.DAYS)
+                    redisTemplate.opsForValue().set("analyze:$", value, 1, TimeUnit.DAYS)
                     return value
                 }
             } catch (e: Exception) {
