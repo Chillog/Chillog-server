@@ -15,7 +15,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 @Configuration
 @OpenAPIDefinition(
     info = io.swagger.v3.oas.annotations.info.Info(
-        title = "chatbot", //TODO: 스웨거 설정 변경
+        title = "Chillog", //TODO: 스웨거 설정 변경
         version = "1.0",
     )
 )
