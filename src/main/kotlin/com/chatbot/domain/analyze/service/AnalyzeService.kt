@@ -6,6 +6,7 @@ import com.chatbot.global.exception.CustomException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.hibernate.query.sqm.tree.SqmNode.log
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.http.HttpEntity
@@ -59,7 +60,7 @@ class AnalyzeService (
     fun createMessage(threadId: String, score: Int) {
         val requestBody = mapOf(
             "role" to "user",
-            "content" to score
+            "content" to score.toString()
         )
         val entity = HttpEntity(requestBody,headers)
         restTemplate.exchange("$apiUrl/$threadId/messages", HttpMethod.POST, entity, String::class.java)
@@ -101,6 +102,7 @@ class AnalyzeService (
                     return value
                 }
             } catch (e: Exception) {
+                log.info(e.message)
                 throw CustomException(AnalyzeErrorCode.GET_CHAT_ERROR)
             }
         }
